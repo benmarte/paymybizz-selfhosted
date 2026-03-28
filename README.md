@@ -105,6 +105,44 @@ If you use a Cloudflare Tunnel and want dashboard access without SSH:
 
 ---
 
+## Persisting Data
+
+By default, data is stored in Docker named volumes and will be lost on `docker compose down -v`. To persist data to your local filesystem, create a `docker-compose.override.yml` in the same directory:
+
+```yaml
+services:
+  backend:
+    volumes:
+      - ./data/convex:/convex/data
+  keygen:
+    volumes:
+      - ./data/convex:/convex/data
+      - ./data/keys:/keys
+  convex-init:
+    volumes:
+      - ./data/keys:/app/.convex_data/keys
+      - ./data/auth-keys:/app/.auth-keys
+
+volumes:
+  convex_data:
+    driver: local
+  convex_keys:
+    driver: local
+  auth_keys:
+    driver: local
+```
+
+Then create the directories and start the stack:
+
+```bash
+mkdir -p data/convex data/keys data/auth-keys
+docker compose up -d
+```
+
+Your data will now survive restarts and `docker compose down -v`.
+
+---
+
 ## Updating
 
 ```bash
@@ -124,12 +162,102 @@ docker compose down -v
 
 ## Configuration
 
-All configuration is in `.env`. See `.env.example` for all available options including:
+All configuration is in `.env`. See `.env.example` for all available options.
 
-- Google OAuth (optional)
-- Email via Gmail or Resend (optional)
-- Stripe invoice payments (optional)
-- Stripe SaaS billing (optional, for multi-tenant deployments)
+---
+
+## Optional Features
+
+### Google Sign-In & Calendar Sync
+
+Google OAuth enables two things: **sign in with Google** and **Google Calendar sync** for time entries.
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → Create a new project
+2. Enable the **Google Calendar API** (APIs & Services → Library)
+3. Go to APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID
+4. Application type: **Web application**
+5. Add these **Authorized redirect URIs** (adjust domains for your setup):
+
+   ```
+   # Auth login callback (Convex site proxy port)
+   http://localhost:3211/api/auth/callback/google
+
+   # Calendar sync callback (frontend port)
+   http://localhost:8177/api/google-calendar/callback
+   ```
+
+   If using a Cloudflare Tunnel, also add:
+   ```
+   https://site.yourdomain.com/api/auth/callback/google
+   https://app.yourdomain.com/api/google-calendar/callback
+   ```
+
+6. Copy the Client ID and Secret into `.env`:
+
+   ```env
+   GOOGLE_CLIENT_ID=your-client-id
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ```
+
+7. Restart the stack: `docker compose up -d`
+
+---
+
+### Email
+
+Email is used to send invoice PDFs and password reset links. Choose one provider:
+
+**Option A — Gmail**
+
+1. Enable 2-Step Verification on your Google account
+2. Go to Google Account → Security → App Passwords → generate a password for "Mail"
+3. Add to `.env`:
+
+   ```env
+   GMAIL_USER=you@gmail.com
+   GMAIL_APP_PASSWORD=your-16-char-app-password
+   ```
+
+**Option B — Resend**
+
+1. Sign up at [resend.com](https://resend.com) and create an API key
+2. Verify your sending domain in the Resend dashboard
+3. Add to `.env`:
+
+   ```env
+   RESEND_API_KEY=re_xxxxx
+   RESEND_FROM=invoices@yourdomain.com
+   ```
+
+Restart after changes: `docker compose up -d`
+
+---
+
+### Stripe Invoice Payments
+
+Enables a **Pay Now** button on invoices so clients can pay by card.
+
+1. Create or log into your [Stripe Dashboard](https://dashboard.stripe.com/)
+2. Copy your API keys (Developers → API keys) into `.env`:
+
+   ```env
+   STRIPE_SECRET_KEY=sk_live_xxxxx
+   STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
+   ```
+
+3. Create a webhook (Developers → Webhooks → Add endpoint):
+   - **Endpoint URL**: `https://site.yourdomain.com/api/stripe` (must be publicly accessible)
+   - **Events to listen for**: `checkout.session.completed`
+
+4. Copy the webhook signing secret into `.env`:
+
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+   ```
+
+5. Restart: `docker compose up -d`
+
+> For local testing, use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to forward webhook events: `stripe listen --forward-to localhost:3211/api/stripe`
 
 ## Source Code
 
