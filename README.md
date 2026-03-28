@@ -62,6 +62,44 @@ AUTH_SITE_URL=https://app.yourdomain.com
 docker compose --profile tunnel up -d
 ```
 
+## Convex Dashboard
+
+The Convex Dashboard lets you browse your database, inspect function logs, run queries, and manage environment variables.
+
+It's available at **http://localhost:6791** while the stack is running.
+
+> **Do not expose port 6791 publicly.** It provides full read/write access to your database with no additional authentication.
+
+### Logging in
+
+The dashboard requires an admin key. Retrieve it after the first run:
+
+```bash
+docker run --rm -v paymybizz-selfhosted_convex_keys:/keys alpine cat /keys/admin-key
+```
+
+Open **http://localhost:6791**, enter `http://localhost:3210` as the deployment URL, and paste the admin key.
+
+### Accessing the dashboard remotely (SSH tunnel)
+
+If your server doesn't have a browser, forward the port over SSH:
+
+```bash
+ssh -L 6791:localhost:6791 user@your-server
+```
+
+Then open **http://localhost:6791** in your local browser.
+
+### Accessing via Cloudflare Access (optional)
+
+If you use a Cloudflare Tunnel and want dashboard access without SSH:
+
+1. In Cloudflare Zero Trust → Access → Applications, add a new application
+2. Point it at `http://localhost:6791` (or `dashboard:6791` internally)
+3. Add an access policy requiring your email — this gates the dashboard behind Cloudflare login
+
+---
+
 ## Updating
 
 ```bash
