@@ -1,5 +1,7 @@
 # PayMyBizz — Self-Hosted
 
+<img src="paymybizz.svg" alt="PayMyBizz" width="200" />
+
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
 
 Self-hosted freelance invoicing, time tracking, and business management.
