@@ -1,6 +1,11 @@
 # PayMyBizz — Self-Hosted
 
-<img src="paymybizz.svg" alt="PayMyBizz" width="200" />
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="paymybizz-white.svg">
+    <img src="paymybizz.svg" alt="PayMyBizz" width="200">
+  </picture>
+</p>
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
 
