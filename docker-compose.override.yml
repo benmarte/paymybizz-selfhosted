@@ -1,0 +1,20 @@
+services:
+  backend:
+    volumes:
+      - ./data/convex:/convex/data
+  keygen:
+    volumes:
+      - ./data/convex:/convex/data
+      - ./data/keys:/keys
+  convex-init:
+    volumes:
+      - ./data/keys:/app/.convex_data/keys
+      - ./data/auth-keys:/app/.auth-keys
+
+volumes:
+  convex_data:
+    driver: local
+  convex_keys:
+    driver: local
+  auth_keys:
+    driver: local

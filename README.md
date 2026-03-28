@@ -107,32 +107,7 @@ If you use a Cloudflare Tunnel and want dashboard access without SSH:
 
 ## Persisting Data
 
-By default, data is stored in Docker named volumes and will be lost on `docker compose down -v`. To persist data to your local filesystem, create a `docker-compose.override.yml` in the same directory:
-
-```yaml
-services:
-  backend:
-    volumes:
-      - ./data/convex:/convex/data
-  keygen:
-    volumes:
-      - ./data/convex:/convex/data
-      - ./data/keys:/keys
-  convex-init:
-    volumes:
-      - ./data/keys:/app/.convex_data/keys
-      - ./data/auth-keys:/app/.auth-keys
-
-volumes:
-  convex_data:
-    driver: local
-  convex_keys:
-    driver: local
-  auth_keys:
-    driver: local
-```
-
-Then create the directories and start the stack:
+A `docker-compose.override.yml` is included that mounts all data to `./data` on your local filesystem. Just create the directories before the first run:
 
 ```bash
 mkdir -p data/convex data/keys data/auth-keys
