@@ -1,8 +1,12 @@
 # PayMyBizz — Self-Hosted
 
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
+
 Self-hosted freelance invoicing, time tracking, and business management.
 
 > No source code required — runs entirely from pre-built Docker images.
+>
+> **Personal use only.** Commercial use requires a license — contact info@paymybizz.com.
 
 ## Requirements
 
