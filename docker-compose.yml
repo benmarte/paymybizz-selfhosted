@@ -1,0 +1,116 @@
+# PayMyBizz — Self-Hosted Distribution
+# =======================================
+# Run PayMyBizz without the source code using pre-built images.
+#
+# Quick start:
+#   cp .env.dist.example .env
+#   # Edit .env and fill in your secrets
+#   docker compose -f docker-compose.dist.yml up -d
+#
+# With Cloudflare tunnel for remote access:
+#   docker compose -f docker-compose.dist.yml --profile tunnel up -d
+#
+# NOTE: The pre-built frontend image has NEXT_PUBLIC_CONVEX_URL baked in as
+# http://localhost:3210. This works for local/LAN access. For a custom domain
+# with a Cloudflare tunnel, set CONVEX_CLOUD_ORIGIN and CONVEX_SITE_ORIGIN in
+# your .env and also override NEXT_PUBLIC_CONVEX_URL/NEXT_PUBLIC_CONVEX_SITE_URL
+# in the frontend environment section below, then rebuild:
+#   docker compose -f docker-compose.dist.yml up -d --build frontend
+
+services:
+  backend:
+    image: ghcr.io/get-convex/convex-backend:latest
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    ports:
+      - "${CONVEX_PORT:-3210}:3210"
+      - "${SITE_PROXY_PORT:-3211}:3211"
+    volumes:
+      - convex_data:/convex/data
+    env_file:
+      - .env
+    environment:
+      - CONVEX_CLOUD_ORIGIN=${CONVEX_CLOUD_ORIGIN:-http://127.0.0.1:${CONVEX_PORT:-3210}}
+      - CONVEX_SITE_ORIGIN=${CONVEX_SITE_ORIGIN:-http://127.0.0.1:${SITE_PROXY_PORT:-3211}}
+    healthcheck:
+      test: curl -f http://localhost:3210/version
+      interval: 5s
+      start_period: 10s
+    restart: unless-stopped
+
+  # Generates admin key from Convex backend credentials — runs once after backend is healthy.
+  keygen:
+    image: ghcr.io/get-convex/convex-backend:latest
+    volumes:
+      - convex_data:/convex/data
+      - convex_keys:/keys
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        cd /convex
+        source ./read_credentials.sh
+        ADMIN_KEY=$$(./generate_key "$$INSTANCE_NAME" "$$INSTANCE_SECRET")
+        echo "$$ADMIN_KEY" > /keys/admin-key
+        echo "Admin key written."
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  dashboard:
+    image: ghcr.io/get-convex/convex-dashboard:latest
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    ports:
+      - "${DASHBOARD_PORT:-6791}:6791"
+    environment:
+      - NEXT_PUBLIC_DEPLOYMENT_URL=${NEXT_PUBLIC_DEPLOYMENT_URL:-http://127.0.0.1:${CONVEX_PORT:-3210}}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # Pushes Convex functions, sets up auth keys, and syncs env vars to backend.
+  # Uses pre-built image — no source code needed.
+  convex-init:
+    image: ghcr.io/benmarte/paymybizz-init:latest
+    volumes:
+      - convex_keys:/app/.convex_data/keys
+      - auth_keys:/app/.auth-keys
+    depends_on:
+      backend:
+        condition: service_healthy
+      keygen:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      - CONVEX_SELF_HOSTED_URL=http://backend:3210
+
+  frontend:
+    image: ghcr.io/benmarte/paymybizz:latest
+    ports:
+      - "${FRONTEND_PORT:-8177}:3000"
+    env_file:
+      - .env
+    depends_on:
+      convex-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Cloudflare tunnel for remote/mobile access
+  # Start with: docker compose -f docker-compose.dist.yml --profile tunnel up -d
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    env_file:
+      - .env
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    profiles:
+      - tunnel
+
+volumes:
+  convex_data:
+  convex_keys:
+  auth_keys:
