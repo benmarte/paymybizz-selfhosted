@@ -107,14 +107,7 @@ If you use a Cloudflare Tunnel and want dashboard access without SSH:
 
 ## Persisting Data
 
-A `docker-compose.override.yml` is included that mounts all data to `./data` on your local filesystem. Just create the directories before the first run:
-
-```bash
-mkdir -p data/convex data/keys data/auth-keys
-docker compose up -d
-```
-
-Your data will now survive restarts and `docker compose down -v`.
+A `docker-compose.override.yml` is included that mounts all data to `./data` on your local filesystem. Data will survive restarts and `docker compose down -v`.
 
 ---
 
