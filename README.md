@@ -4,7 +4,7 @@
 
 Run it on your own server. Your data stays yours.
 
-![Dashboard overview](https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/dashboard-overview.png)
+![Dashboard overview](https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docs/images/dashboard-overview.png)
 
 ---
 
@@ -30,16 +30,16 @@ Run it on your own server. Your data stays yours.
 
 <table>
 <tr>
-<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/invoices-page.png" alt="Invoices"></td>
-<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/time-tracking-page.png" alt="Time tracking"></td>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docs/images/invoices-page.png" alt="Invoices"></td>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docs/images/time-tracking-page.png" alt="Time tracking"></td>
 </tr>
 <tr>
 <td align="center"><b>Invoices</b></td>
 <td align="center"><b>Time Tracking</b></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/clients-page.png" alt="Clients"></td>
-<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/reports-page.png" alt="Reports"></td>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docs/images/clients-page.png" alt="Clients"></td>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docs/images/reports-page.png" alt="Reports"></td>
 </tr>
 <tr>
 <td align="center"><b>Clients</b></td>
