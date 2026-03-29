@@ -1,113 +1,112 @@
-# PayMyBizz — Self-Hosted
+# PayMyBizz
 
-<p align="center">
-  <img src="paymybizz.svg#gh-light-mode-only" alt="PayMyBizz" width="200">
-  <img src="paymybizz-white.svg#gh-dark-mode-only" alt="PayMyBizz" width="200">
-</p>
+**Self-hosted invoicing, time tracking, and expense management for freelancers and small agencies.**
 
-[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
+Run it on your own server. Your data stays yours.
 
-Self-hosted freelance invoicing, time tracking, and business management.
+![Dashboard overview](https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/dashboard-overview.png)
 
-> No source code required — runs entirely from pre-built Docker images.
->
-> **Personal use only.** Commercial use requires a license — contact info@paymybizz.com.
+---
+
+## What you get
+
+| | |
+|---|---|
+| 🧾 **Invoicing** | Create, send, and track invoices with automatic overdue reminders |
+| ⏱ **Time tracking** | Built-in timer, manual entry, bulk actions, and one-click billing to invoices |
+| 💸 **Expenses** | Track business expenses with receipt attachments and billable flagging |
+| 👥 **Clients & projects** | Manage clients, projects, billing types (hourly, retainer, fixed), and budgets |
+| 📊 **Reports** | Revenue by client, tax summaries, and CSV export |
+| 🔁 **Recurring invoices** | Auto-generate invoices on weekly, monthly, or custom schedules |
+| 📅 **Calendar sync** | Sync time entries with Google Calendar (optional) |
+| 🌍 **8 languages** | English, Spanish, French, Portuguese, German, Japanese, Korean, Chinese |
+| 👥 **Team support** | Invite team members with role-based access (Owner, Admin, Accountant, Viewer) |
+| 📱 **Works offline** | Progressive Web App — install it, use it offline, syncs when back online |
+| 🔒 **2FA** | TOTP two-factor authentication for your account |
+
+---
+
+## Screenshots
+
+<table>
+<tr>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/invoices-page.png" alt="Invoices"></td>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/time-tracking-page.png" alt="Time tracking"></td>
+</tr>
+<tr>
+<td align="center"><b>Invoices</b></td>
+<td align="center"><b>Time Tracking</b></td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/clients-page.png" alt="Clients"></td>
+<td><img src="https://raw.githubusercontent.com/benmarte/paymybizz/main/docs/content/images/reports-page.png" alt="Reports"></td>
+</tr>
+<tr>
+<td align="center"><b>Clients</b></td>
+<td align="center"><b>Reports</b></td>
+</tr>
+</table>
+
+---
 
 ## Requirements
 
-- [Docker](https://docs.docker.com/get-docker/) & Docker Compose
+> **You only need Docker.** Everything else is optional and can be configured later from the app's Settings page.
 
-## Quick Start
+| | What | Notes |
+|---|---|---|
+| ✅ **Required** | Docker + Docker Compose v2+ | The only hard requirement |
+| ✅ **Required** | 2 GB free disk space | For the database and Docker images |
+| ⬜ Optional | Email provider (Gmail or Resend) | Needed only to send invoice emails to clients. The app works fully without it. |
+| ⬜ Optional | Google OAuth credentials | Only needed if you want **Sign in with Google**. Email + password login works without it — do not add these unless you want Google login. |
+| ⬜ Optional | Stripe account | Only needed for online card payments. Manual payment tracking (bank transfer, Zelle, etc.) works without it. |
+| ⬜ Optional | Cloudflare account | Only needed to expose the app to the internet via a tunnel. Not needed for local use. |
+
+---
+
+## Quick start
 
 ```bash
-# 1. Clone this repo
-git clone https://github.com/benmarte/paymybizz-selfhosted.git
-cd paymybizz-selfhosted
+# 1. Download the compose file
+curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docker-compose.yml
 
-# 2. Configure your environment
+# 2. Create your config (safe defaults are pre-filled — no changes needed to get started)
+curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/.env.example
 cp .env.example .env
-# Edit .env — defaults work out of the box for local access
 
-# 3. Start everything
+# 3. Start
 docker compose up -d
-
-# 4. Visit the app
-open http://localhost:8177
 ```
 
-The first run takes a minute — the init container pushes Convex functions and sets up authentication automatically.
+Open **http://localhost:8177** — the setup wizard will guide you through the rest.
 
-## URLs
+The first account you create automatically gets **Owner** (admin) access.
 
-| Service | URL |
-|---------|-----|
-| App | http://localhost:8177 |
-| Convex Backend | http://localhost:3210 |
-| Convex Dashboard | http://localhost:6791 |
+---
 
-## Remote Access (Cloudflare Tunnel)
+## Configuration
 
-To access from your phone or outside your local network:
+All settings in `.env` are optional except for the ones marked required above. The setup wizard inside the app will walk you through connecting email, Google OAuth, and Stripe if you want them.
 
-1. Create a free tunnel at [Cloudflare Zero Trust](https://one.dash.cloudflare.com/) → Networks → Tunnels
-2. Add three public hostnames pointing to `frontend:3000`, `backend:3210`, and `backend:3211`
-3. Add these to your `.env`:
+For a full list of environment variables, see the [Configuration guide](../../wiki/Admin-Guide-Configuration).
+
+---
+
+## Remote access (optional)
+
+To access your instance from outside your local network, add a Cloudflare tunnel token to `.env`:
 
 ```env
-TUNNEL_TOKEN=your-token-here
-CONVEX_CLOUD_ORIGIN=https://api.yourdomain.com
-CONVEX_SITE_ORIGIN=https://site.yourdomain.com
-NEXT_PUBLIC_DEPLOYMENT_URL=https://api.yourdomain.com
-AUTH_SITE_URL=https://app.yourdomain.com
+TUNNEL_TOKEN=your_cloudflare_tunnel_token
 ```
 
-4. Start with the tunnel profile:
+Then restart with the tunnel profile:
 
 ```bash
 docker compose --profile tunnel up -d
 ```
 
-## Convex Dashboard
-
-The Convex Dashboard lets you browse your database, inspect function logs, run queries, and manage environment variables.
-
-It's available at **http://localhost:6791** while the stack is running.
-
-> **Do not expose port 6791 publicly.** It provides full read/write access to your database with no additional authentication.
-
-### Logging in
-
-The dashboard requires an admin key. Retrieve it after the first run:
-
-```bash
-docker run --rm -v paymybizz-selfhosted_convex_keys:/keys alpine cat /keys/admin-key
-```
-
-Open **http://localhost:6791**, enter `http://localhost:3210` as the deployment URL, and paste the admin key.
-
-### Accessing the dashboard remotely (SSH tunnel)
-
-If your server doesn't have a browser, forward the port over SSH:
-
-```bash
-ssh -L 6791:localhost:6791 user@your-server
-```
-
-Then open **http://localhost:6791** in your local browser.
-
-### Accessing via Cloudflare Access (optional)
-
-If you use a Cloudflare Tunnel and want dashboard access without SSH:
-
-1. In Cloudflare Zero Trust → Access → Applications, add a new application
-2. Point it at `http://localhost:6791` (or `dashboard:6791` internally)
-3. Add an access policy requiring your email — this gates the dashboard behind Cloudflare login
-
----
-
-## Persisting Data
-
-A `docker-compose.override.yml` is included that mounts all data to `./data` on your local filesystem. Data will survive restarts and `docker compose down -v`.
+See the [Installation guide](../../wiki/Admin-Guide-Installation) for Cloudflare setup steps.
 
 ---
 
@@ -118,115 +117,31 @@ docker compose pull
 docker compose up -d
 ```
 
-## Stopping
-
-```bash
-# Stop containers (keeps data)
-docker compose down
-
-# Stop and wipe all data
-docker compose down -v
-```
-
-## Configuration
-
-All configuration is in `.env`. See `.env.example` for all available options.
+Your data is stored in a Docker volume and is not affected by updates.
 
 ---
 
-## Optional Features
+## Documentation
 
-### Google Sign-In & Calendar Sync
+Full user and admin documentation is available in the [Wiki](../../wiki).
 
-Google OAuth enables two things: **sign in with Google** and **Google Calendar sync** for time entries.
+**User Guide**
+- [Getting Started](../../wiki/Getting-Started)
+- [Invoices](../../wiki/Invoices)
+- [Time Tracking](../../wiki/Time-Tracking)
+- [Clients](../../wiki/Clients)
+- [Reports](../../wiki/Reports)
+- [Settings](../../wiki/Settings)
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/) → Create a new project
-2. Enable the **Google Calendar API** (APIs & Services → Library)
-3. Go to APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID
-4. Application type: **Web application**
-5. Add these **Authorized redirect URIs** (adjust domains for your setup):
-
-   ```
-   # Auth login callback (Convex site proxy port)
-   http://localhost:3211/api/auth/callback/google
-
-   # Calendar sync callback (frontend port)
-   http://localhost:8177/api/google-calendar/callback
-   ```
-
-   If using a Cloudflare Tunnel, also add:
-   ```
-   https://site.yourdomain.com/api/auth/callback/google
-   https://app.yourdomain.com/api/google-calendar/callback
-   ```
-
-6. Copy the Client ID and Secret into `.env`:
-
-   ```env
-   GOOGLE_CLIENT_ID=your-client-id
-   GOOGLE_CLIENT_SECRET=your-client-secret
-   ```
-
-7. Restart the stack: `docker compose up -d`
+**Admin Guide**
+- [Installation](../../wiki/Admin-Guide-Installation)
+- [Configuration](../../wiki/Admin-Guide-Configuration)
+- [Backup & Restore](../../wiki/Admin-Guide-Backup-Restore)
+- [Team Roles](../../wiki/Admin-Guide-Team-Roles)
 
 ---
 
-### Email
+## Support
 
-Email is used to send invoice PDFs and password reset links. Choose one provider:
-
-**Option A — Gmail**
-
-1. Enable 2-Step Verification on your Google account
-2. Go to Google Account → Security → App Passwords → generate a password for "Mail"
-3. Add to `.env`:
-
-   ```env
-   GMAIL_USER=you@gmail.com
-   GMAIL_APP_PASSWORD=your-16-char-app-password
-   ```
-
-**Option B — Resend**
-
-1. Sign up at [resend.com](https://resend.com) and create an API key
-2. Verify your sending domain in the Resend dashboard
-3. Add to `.env`:
-
-   ```env
-   RESEND_API_KEY=re_xxxxx
-   RESEND_FROM=invoices@yourdomain.com
-   ```
-
-Restart after changes: `docker compose up -d`
-
----
-
-### Stripe Invoice Payments
-
-Enables a **Pay Now** button on invoices so clients can pay by card.
-
-1. Create or log into your [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Copy your API keys (Developers → API keys) into `.env`:
-
-   ```env
-   STRIPE_SECRET_KEY=sk_live_xxxxx
-   STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
-   ```
-
-3. Create a webhook (Developers → Webhooks → Add endpoint):
-   - **Endpoint URL**: `https://site.yourdomain.com/api/stripe` (must be publicly accessible)
-   - **Events to listen for**: `checkout.session.completed`
-
-4. Copy the webhook signing secret into `.env`:
-
-   ```env
-   STRIPE_WEBHOOK_SECRET=whsec_xxxxx
-   ```
-
-5. Restart: `docker compose up -d`
-
-> For local testing, use the [Stripe CLI](https://stripe.com/docs/stripe-cli) to forward webhook events: `stripe listen --forward-to localhost:3211/api/stripe`
-
-## Source Code
-
-The source code for PayMyBizz lives at [github.com/benmarte/paymybizz](https://github.com/benmarte/paymybizz) (private). Docker images are published automatically to `ghcr.io/benmarte/paymybizz` on every release.
+- [Open an issue](https://github.com/benmarte/paymybizz-selfhosted/issues) for bugs or questions
+- [Discussions](https://github.com/benmarte/paymybizz-selfhosted/discussions) for general help
