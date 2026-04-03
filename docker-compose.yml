@@ -71,7 +71,7 @@ services:
   # Pushes Convex functions, sets up auth keys, and syncs env vars to backend.
   # Uses pre-built image — no source code needed.
   convex-init:
-    image: ghcr.io/benmarte/paymybizz-init:1.1.1
+    image: ghcr.io/benmarte/paymybizz-init:1.2.0
     volumes:
       - convex_keys:/app/.convex_data/keys
       - auth_keys:/app/.auth-keys
@@ -86,7 +86,7 @@ services:
       - CONVEX_SELF_HOSTED_URL=http://backend:3210
 
   frontend:
-    image: ghcr.io/benmarte/paymybizz:1.1.1
+    image: ghcr.io/benmarte/paymybizz:1.2.0
     ports:
       - "${FRONTEND_PORT:-8177}:3000"
     env_file:
