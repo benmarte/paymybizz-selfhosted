@@ -3,19 +3,21 @@
 # Run PayMyBizz without the source code using pre-built images.
 #
 # Quick start:
-#   cp .env.dist.example .env
-#   # Edit .env and fill in your secrets
-#   docker compose -f docker-compose.dist.yml up -d
+#   curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docker-compose.yml
+#   curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/.env.example
+#   cp .env.example .env
+#   mkdir -p data/convex data/keys data/auth-keys
+#   docker compose up -d
 #
 # With Cloudflare tunnel for remote access:
-#   docker compose -f docker-compose.dist.yml --profile tunnel up -d
+#   docker compose --profile tunnel up -d
 #
 # NOTE: The pre-built frontend image has NEXT_PUBLIC_CONVEX_URL baked in as
 # http://localhost:3210. This works for local/LAN access. For a custom domain
 # with a Cloudflare tunnel, set CONVEX_CLOUD_ORIGIN and CONVEX_SITE_ORIGIN in
 # your .env and also override NEXT_PUBLIC_CONVEX_URL/NEXT_PUBLIC_CONVEX_SITE_URL
 # in the frontend environment section below, then rebuild:
-#   docker compose -f docker-compose.dist.yml up -d --build frontend
+#   docker compose up -d --build frontend
 
 services:
   backend:
@@ -26,7 +28,7 @@ services:
       - "${CONVEX_PORT:-3210}:3210"
       - "${SITE_PROXY_PORT:-3211}:3211"
     volumes:
-      - convex_data:/convex/data
+      - ./data/convex:/convex/data
     env_file:
       - .env
     environment:
@@ -42,8 +44,8 @@ services:
   keygen:
     image: ghcr.io/get-convex/convex-backend:latest
     volumes:
-      - convex_data:/convex/data
-      - convex_keys:/keys
+      - ./data/convex:/convex/data
+      - ./data/keys:/keys
     entrypoint: ["bash", "-c"]
     command:
       - |
@@ -73,8 +75,8 @@ services:
   convex-init:
     image: ghcr.io/benmarte/paymybizz-init:latest
     volumes:
-      - convex_keys:/app/.convex_data/keys
-      - auth_keys:/app/.auth-keys
+      - ./data/keys:/app/.convex_data/keys
+      - ./data/auth-keys:/app/.auth-keys
     depends_on:
       backend:
         condition: service_healthy
@@ -97,7 +99,7 @@ services:
     restart: unless-stopped
 
   # Cloudflare tunnel for remote/mobile access
-  # Start with: docker compose -f docker-compose.dist.yml --profile tunnel up -d
+  # Start with: docker compose --profile tunnel up -d
   cloudflared:
     image: cloudflare/cloudflared:latest
     command: tunnel run
@@ -109,8 +111,3 @@ services:
     restart: unless-stopped
     profiles:
       - tunnel
-
-volumes:
-  convex_data:
-  convex_keys:
-  auth_keys:
