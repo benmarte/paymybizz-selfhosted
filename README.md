@@ -1,7 +1,4 @@
-<p align="center">
-  <img src="docs/images/paymybizz.svg#gh-light-mode-only" alt="PayMyBizz" width="200">
-  <img src="docs/images/paymybizz-white.svg#gh-dark-mode-only" alt="PayMyBizz" width="200">
-</p>
+# PayMyBizz
 
 **Self-hosted invoicing, time tracking, and expense management for freelancers and small agencies.**
 
