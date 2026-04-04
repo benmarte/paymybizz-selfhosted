@@ -74,7 +74,10 @@ curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/doc
 curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/.env.example
 cp .env.example .env
 
-# 3. Start
+# 3. Create data directories (your database and keys are stored here)
+mkdir -p data/convex data/keys data/auth-keys
+
+# 4. Start
 docker compose up -d
 ```
 
@@ -94,44 +97,54 @@ For a full list of environment variables, see the [Configuration guide](../../wi
 
 ## Data persistence
 
-By default, PayMyBizz stores all data in Docker named volumes (`convex_data`, `convex_keys`, `auth_keys`). These volumes survive `docker compose down` and `docker compose up` restarts.
+PayMyBizz stores all data in local directories on your filesystem:
 
-> **Warning:** Running `docker compose down -v` deletes all volumes and **permanently destroys your data**. Never use `-v` unless you intend to wipe everything.
+| Directory | Contents |
+|---|---|
+| `./data/convex/` | Database (all your business data) |
+| `./data/keys/` | Convex admin key |
+| `./data/auth-keys/` | Auth signing keys |
 
-To store data in local directories on your filesystem instead (recommended for production), create a `docker-compose.override.yml` file alongside `docker-compose.yml`:
+These directories are bind-mounted directly into the containers, so your data survives container restarts, image updates, and `docker compose down`. They are plain directories on disk — back them up like any other folder.
+
+> **Never run `docker compose down -v`** — the `-v` flag removes any remaining Docker volumes. Your `./data/` directories are safe, but it's a destructive command that's easy to mistype.
+
+### Migrating from Docker volumes (existing installs)
+
+If you set up PayMyBizz before this change and your data is in Docker named volumes, follow these steps to move it to the local filesystem:
 
 ```bash
-# Create the data directories first
+# 1. Stop the containers — do NOT use -v
+docker compose down
+
+# 2. Create the host directories
 mkdir -p data/convex data/keys data/auth-keys
+
+# 3. Copy volume data to host directories
+docker run --rm \
+  -v paymybizz_convex_data:/source \
+  -v "$(pwd)/data/convex:/dest" \
+  alpine sh -c "cp -a /source/. /dest/"
+
+docker run --rm \
+  -v paymybizz_convex_keys:/source \
+  -v "$(pwd)/data/keys:/dest" \
+  alpine sh -c "cp -a /source/. /dest/"
+
+docker run --rm \
+  -v paymybizz_auth_keys:/source \
+  -v "$(pwd)/data/auth-keys:/dest" \
+  alpine sh -c "cp -a /source/. /dest/"
+
+# 4. Pull the updated docker-compose.yml
+curl -O https://raw.githubusercontent.com/benmarte/paymybizz-selfhosted/main/docker-compose.yml
+
+# 5. Start again
+docker compose up -d
+
+# 6. Confirm everything works, then remove the old volumes
+docker volume rm paymybizz_convex_data paymybizz_convex_keys paymybizz_auth_keys
 ```
-
-```yaml
-# docker-compose.override.yml
-# Persists all data to local directories — safe even if volumes are deleted.
-volumes:
-  convex_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/convex
-  convex_keys:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/keys
-  auth_keys:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/auth-keys
-```
-
-Docker Compose automatically picks up this file alongside `docker-compose.yml` — no extra flags needed. Your data will now live in `./data/` and survive even if Docker volumes are removed.
-
-> **Do this before your first run.** Migrating an existing volume to a bind mount requires manually copying the volume contents.
 
 ---
 
