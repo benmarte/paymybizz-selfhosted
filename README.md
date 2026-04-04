@@ -92,6 +92,49 @@ For a full list of environment variables, see the [Configuration guide](../../wi
 
 ---
 
+## Data persistence
+
+By default, PayMyBizz stores all data in Docker named volumes (`convex_data`, `convex_keys`, `auth_keys`). These volumes survive `docker compose down` and `docker compose up` restarts.
+
+> **Warning:** Running `docker compose down -v` deletes all volumes and **permanently destroys your data**. Never use `-v` unless you intend to wipe everything.
+
+To store data in local directories on your filesystem instead (recommended for production), create a `docker-compose.override.yml` file alongside `docker-compose.yml`:
+
+```bash
+# Create the data directories first
+mkdir -p data/convex data/keys data/auth-keys
+```
+
+```yaml
+# docker-compose.override.yml
+# Persists all data to local directories — safe even if volumes are deleted.
+volumes:
+  convex_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/convex
+  convex_keys:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/keys
+  auth_keys:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/auth-keys
+```
+
+Docker Compose automatically picks up this file alongside `docker-compose.yml` — no extra flags needed. Your data will now live in `./data/` and survive even if Docker volumes are removed.
+
+> **Do this before your first run.** Migrating an existing volume to a bind mount requires manually copying the volume contents.
+
+---
+
 ## Remote access (optional)
 
 To access your instance from outside your local network, add a Cloudflare tunnel token to `.env`:
@@ -117,7 +160,7 @@ docker compose pull
 docker compose up -d
 ```
 
-Your data is stored in a Docker volume and is not affected by updates.
+> **Never run `docker compose down -v`** — the `-v` flag deletes your data volumes permanently. Plain `docker compose down` (no `-v`) is safe.
 
 ---
 
